@@ -16,6 +16,7 @@ type concourseCheck struct {
 		Name          string `json:"name"`
 		ForceRegular  bool   `json:"force_regular"`
 		VersionFamily string `json:"version_family"`
+		Offset        uint   `json:"offset"`
 	}
 	Version struct {
 		Version string `json:"version"`
@@ -29,6 +30,8 @@ func main() {
 		log.Fatalf("failed reading json: %s", err)
 	}
 
+	fmt.Fprintf(os.Stderr, "%+v\n", checkRequest)
+
 	httpClient := boshio.NewHTTPClient("https://bosh.io", 5*time.Minute)
 
 	client := boshio.NewClient(httpClient, nil, nil, checkRequest.Source.ForceRegular)
@@ -38,11 +41,13 @@ func main() {
 	}
 
 	stemcells = stemcells.FilterByType()
+
 	filter := versions.NewFilter(
 		checkRequest.Version.Version,
 		stemcells,
 		checkRequest.Source.VersionFamily,
 	)
+	filter.SetOffset(checkRequest.Source.Offset)
 
 	filteredVersions, err := filter.Versions()
 	if err != nil {

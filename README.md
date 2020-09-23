@@ -5,6 +5,13 @@ Tracks the versions of a stemcell on [bosh.io](https://bosh.io).
 For example, to automatically consume `bosh-aws-xen-ubuntu-trusty-go_agent`:
 
 ```yaml
+resource_types:
+- name: bosh-io-stemcell
+  type: registry-image
+  source: { repository: klaue/bosh-io-stemcell-resource }
+```
+
+```yaml
 resources:
 - name: aws-stemcell
   type: bosh-io-stemcell
@@ -24,6 +31,8 @@ would match `3262.1` and `3262.1.1`, but not `3262.2`.
 
 * `force_regular`: *Optional.* Default `false`. By default, the resource will always download light stemcells for IaaSes that support light stemcells.
   If `force_regular` is `true`, the resource will ignore light stemcells and always download regular stemcells.
+
+* `offset`: Check will only pull versions of which there are `offset` number of newer versions than found on bosh.io
 
 ## Behavior
 

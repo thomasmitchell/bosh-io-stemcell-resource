@@ -15,6 +15,7 @@ type Filter struct {
 	initialVersion string
 	stemcells      []boshio.Stemcell
 	versionFamily  string
+	offset         uint
 }
 
 func NewFilter(initialVersion string, stemcells []boshio.Stemcell, versionFamily string) Filter {
@@ -24,6 +25,8 @@ func NewFilter(initialVersion string, stemcells []boshio.Stemcell, versionFamily
 		versionFamily:  versionFamily,
 	}
 }
+
+func (f *Filter) SetOffset(offset uint) { f.offset = offset }
 
 func (f Filter) Versions() (StemcellVersions, error) {
 	if len(f.stemcells) == 0 {
@@ -39,11 +42,12 @@ func (f Filter) Versions() (StemcellVersions, error) {
 		}
 	}
 
+	sort.Sort(stemcellVersions)
+	stemcellVersions = f.trimOffset(stemcellVersions)
+
 	if len(stemcellVersions) == 0 {
 		return StemcellVersions{}, nil
 	}
-
-	sort.Sort(stemcellVersions)
 
 	if f.initialVersion == "" {
 		return stemcellVersions[len(stemcellVersions)-1:], nil
@@ -122,6 +126,15 @@ func (f Filter) selectVersionsGreaterThanInitial(stemcells StemcellVersions) (St
 		}
 	}
 	return filteredStemcells, nil
+}
+
+//input must be sorted
+func (f Filter) trimOffset(stemcells StemcellVersions) StemcellVersions {
+	if f.offset >= uint(len(stemcells)) {
+		return StemcellVersions{}
+	}
+
+	return stemcells[:uint(len(stemcells))-f.offset]
 }
 
 func (sv StemcellVersions) Len() int {
